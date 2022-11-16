@@ -14,4 +14,5 @@ public class EcommerceDbContext : DbContext
     {
         optionsBuilder.UseSqlServer("Data Source=localhost;Initial Catalog=db-ecommerce;Integrated Security=True;Encrypt=false");
     }
+
 }

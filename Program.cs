@@ -1,8 +1,11 @@
-﻿Console.WriteLine("ciao mondo");
+﻿using Azure.Identity;
+using Microsoft.EntityFrameworkCore;
+
+Console.WriteLine("ciao mondo");
 EcommerceDbContext db = new EcommerceDbContext();
 
 if (db.Products.Any() == false)
-    GeneraOrdine();
+    GeneraProdotto();
 if (db.Employees.Any() == false)
     GeneraDipendente();
 if (db.Customers.Any() == false)
@@ -28,7 +31,7 @@ while (loop)
                 {
                     Console.WriteLine("Sezione Dipendente: ");
                     Console.WriteLine("1. Stampa tutti i prodotti");
-                    Console.WriteLine("2. ");
+                    Console.WriteLine("2. Crea un nuovo ordine ");
                     int employeeResponse = Convert.ToInt32(Console.ReadLine());
 
 
@@ -50,7 +53,7 @@ while (loop)
                         case 2:
                             try
                             {
-                               
+                                CreaOrdine();
                             }
                             catch (Exception e)
                             {
@@ -93,15 +96,10 @@ while (loop)
 }
 
 
-void GeneraOrdine()
+void GeneraProdotto()
 {
  
     Product product = new Product();
-
-    product.Name = "Orologio";
-    product.Description = "Un oggetto che serve per misurare il tempo";
-    product.Price = 130.50;
-    db.Products.Add(product);
 
     Product orologio = new Product() { Name = "Orologio", Description = "Un oggetto che serve per misurare il tempo", Price = 150.50 };
     Product sveglia = new Product() { Name = "Sveglia", Description = "Un oggetto che serve per svegliare le pesone", Price = 100 };
@@ -140,7 +138,6 @@ void GeneraCliente()
     db.SaveChanges();
 }
 
-
 void stampaProdotti()
 {
     List<Product> products = db.Products.ToList<Product>();
@@ -152,3 +149,42 @@ void stampaProdotti()
     }
 }
 
+void stampaNomiProdotti()
+{
+    List<Product> products = db.Products.ToList<Product>();
+    Console.WriteLine("Questi sono i prodotti disponibili");
+    int index = 1;
+    foreach (Product item in products)
+    {
+        Console.WriteLine(index++ + ": " + item.Name);
+      
+    }
+}
+
+//Devo inserire più prodotti in un singolo ordine!!
+void CreaOrdine()
+{
+    Console.WriteLine("Quanti prodotti vuoi inserire?");
+    int productNumber = Convert.ToInt32(Console.ReadLine());
+    stampaNomiProdotti();
+
+    for (int i = 0; i < productNumber; i++)
+    {
+        Console.WriteLine("Inserisci nome prodotto " + (i + 1));
+        string nomeProdotto = Console.ReadLine();
+
+        Product product = db.Products.Where(p => p.Name == nomeProdotto).Include("Orders").First();
+        Customer customer = db.Customers.First();
+        Employee employee = db.Employees.First();
+        int random = new Random().Next(0, 2);
+        bool status = false;
+        if (random == 1)
+            status = true;
+        Order order = new Order() { Date = DateTime.Now, Amount = product.Price, Status = status, CustomerId = customer.Id, EmployeeId = employee.Id };
+        product.Orders.Add(order);
+        db.SaveChanges();
+        Console.WriteLine("Prodotto inserito correttamente");
+    }
+
+
+}
